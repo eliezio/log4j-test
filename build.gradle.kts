@@ -21,7 +21,7 @@ dependencies {
     implementation(platform("org.apache.logging.log4j:log4j-bom:$log4jVersion"))
     implementation("com.github.ajalt.clikt:clikt:3.3.0")
 
-    implementation("org.apache.logging.log4j:log4j-api")
+    implementation("org.springframework.boot:spring-boot-starter-logging:2.6.1")
 
     runtimeOnly("org.apache.logging.log4j:log4j-core")
 }
