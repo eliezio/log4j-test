@@ -30,6 +30,8 @@ dependencies {
             exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
         }
     }
+    implementation("org.slf4j:slf4j-api")
+    implementation("org.apache.logging.log4j:log4j-api")
 
     runtimeOnly("org.apache.logging.log4j:log4j-core")
 }
