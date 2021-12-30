@@ -8,7 +8,7 @@ vulnerabilities on Java applications for two typical scenarios, as reported by t
 - [CVE-2021-45046](https://www.cve.org/CVERecord?id=CVE-2021-45046)
 - [CVE-2021-45105](https://www.cve.org/CVERecord?id=CVE-2021-45105)
 
-The first two, famously nicknamed Log4Shell, enable Remote-Code-Execution, while the last one allows a Denial-of-Service. 
+The first two, famously nicknamed Log4Shell, enable Remote-Code-Execution, whereas the last one allows a Denial-of-Service.
 
 ### Misbelief #1: All Log4j modules from 2.0 to 2.16 were impacted by at least one of these vulnerabilities
 
@@ -21,7 +21,7 @@ Therefore, we can safely claim that:
 
 ### Misbelief #2: If log4-core older than 2.17 is present in the classpath, then my application is _necessarily_ vulnerable 
 
-This one is more subtle. Many applications are based on Spring Boot that by default uses Logback as its logger, but also includes some Log4j modules to bridge the Log4J API to SLF4J/Logback, namely:
+This one is more subtle. Many applications are based on Spring Boot that, by default, uses Logback as its logger, but also includes some Log4j modules to bridge the Log4J API to SLF4J/Logback, namely:
 - `log4j-to-slf4j`
 - `log4j-api`
 
@@ -34,8 +34,9 @@ Again, we can conclude that:
 
 ## Usage
 
-At API level, the test application uses both SLF4J and Log4j APIs. Similarly, in the runtime classpath both `log4j-core` and `logback-classic` are present.
-To prove the statements above, we just need to run application with and without `log4j-to-slf4j` in the RT classpath.
+The test application uses both SLF4J and Log4j at API and implementation levels.
+A command line switch allows you to run the application in two different modes, either including or excluding
+the `Log4j-to-slf4j` module.
 
 Either way, it uses both APIs to log a message that would exploit the Log4Shell vulnerability using the TrendMicro's "Log4j Vulnerability Tester" to check if the ethical exploit has succeeded. 
 
@@ -55,7 +56,7 @@ The Log4j Tester page will display the results:
 
 ![](./images/lo4j-tester-results.jpeg)
 
-In the console the application will output messages similar to:
+In the console, the application will output messages similar to:
 
 <pre style="background-color: #2B2B2B">
 <b>LOGBACK</b> 13:45:40.798 [main] INFO  main - Using SLF4J: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
@@ -74,7 +75,7 @@ In the console the application will output messages similar to:
 
 ### Step 3: Running <u>with</u> `log4j-to-slf4j`
 
-If you omit the `-Plog4shell` the `log4j-to-slf4j` module will be included in the RT classpath,
+If you omit the `-Plog4shell` switch, the `log4j-to-slf4j` module will be included in the RT classpath,
 and you'll see how it can effectively neutralize the unsafe `log4j-core` module:
 
 
@@ -82,7 +83,7 @@ and you'll see how it can effectively neutralize the unsafe `log4j-core` module:
 $ ./gradlew run --args 892610a5-2807-4a24-be67-dc5750c388ce
 ```
 
-At the Log4j Tester page you won't see any message added to the "Results" pane and in the console you'll see messages like these:
+At the Log4j Tester page you won't see any message added to the "Results" pane, and in the console you get messages like these:
 
 <pre style="background-color: #2B2B2B">
 <b>LOGBACK</b> 13:53:58.733 [main] INFO  main - Using SLF4J: ${jndi:ldap://log4j-tester.trendmicro.com:1389/892610a5-2807-4a24-be67-dc5750c388ce}
