@@ -1,18 +1,15 @@
 package io.eliez.lab.log4jextra
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.arguments.argument
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import kotlin.system.exitProcess
 
-class Main : CliktCommand(printHelpOnEmptyArgs = true) {
+class Main {
 
     private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger("main")
     private val log4jLogger: Logger = LogManager.getLogger("main")
 
-    private val uuid by argument(help = "Go to https://log4j-tester.trendmicro.com to get your JNDI snapshot")
-
-    override fun run() {
+    fun run(uuid: String) {
         val tmURL = "\${jndi:ldap://log4j-tester.trendmicro.com:1389/$uuid}"
 
         logger.info("Using SLF4J: {}", tmURL)
@@ -20,4 +17,10 @@ class Main : CliktCommand(printHelpOnEmptyArgs = true) {
     }
 }
 
-fun main(args: Array<String>) = Main().main(args)
+fun main(args: Array<String>) {
+    if (args.size != 1) {
+        System.err.println("Invalid arguments.\nPass the JNDI snapshot as the only argument.")
+        exitProcess(1)
+    }
+    Main().run(args[0])
+}

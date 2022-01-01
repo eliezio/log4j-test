@@ -23,8 +23,6 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(platform("org.apache.logging.log4j:log4j-bom:$log4jVersion"))
-    implementation("com.github.ajalt.clikt:clikt:3.3.0")
-
     implementation("org.springframework.boot:spring-boot-starter-logging:2.6.1") {
         if (project.hasProperty("log4shell")) {
             exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
