@@ -3,7 +3,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.support.serviceOf
 
 plugins {
-    kotlin("jvm") version "1.6.10"
     application
 }
 
@@ -13,7 +12,7 @@ version = "1.0-SNAPSHOT"
 val log4jVersion = "2.14.1"
 
 application {
-    mainClass.set("io.eliez.lab.log4jextra.MainKt")
+    mainClass.set("io.eliez.lab.log4jextra.Main")
 }
 
 repositories {
@@ -21,7 +20,6 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(platform("org.apache.logging.log4j:log4j-bom:$log4jVersion"))
     implementation("org.springframework.boot:spring-boot-starter-logging:2.6.1") {
         if (project.hasProperty("log4shell")) {
