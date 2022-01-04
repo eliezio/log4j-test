@@ -3,12 +3,14 @@
 ## Introduction
 
 This project intends to debunk two common misbeliefs regarding the impact of the recently discovered Log4j 2.x
-vulnerabilities on Java applications for two typical scenarios, as reported by the following CVE records:
+vulnerabilities on JVM applications for two typical scenarios, as reported in the following CVE records:
 - [CVE-2021-44228](https://www.cve.org/CVERecord?id=CVE-2021-44228)
 - [CVE-2021-45046](https://www.cve.org/CVERecord?id=CVE-2021-45046)
 - [CVE-2021-45105](https://www.cve.org/CVERecord?id=CVE-2021-45105)
 
 The first two, famously nicknamed Log4Shell, enable Remote-Code-Execution, whereas the last one allows a Denial-of-Service.
+
+![](./images/Logging APIs.png)
 
 ### Misbelief #1: All Log4j modules from 2.0 to 2.16 were impacted by at least one of these vulnerabilities
 
